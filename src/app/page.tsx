@@ -36,7 +36,7 @@ export default function Home() {
                 <Link href="/setup" className="btn-primary hero-btn">
                   🌱 Start My Journey
                 </Link>
-                <Link href="/dashboard" className="btn-white hero-btn">
+                <Link href="/auth/login" className="btn-white hero-btn">
                   I already have an account
                 </Link>
               </div>
