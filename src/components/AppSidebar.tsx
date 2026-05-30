@@ -10,9 +10,9 @@ import {
 import { getAuthClient } from "@/lib/auth-client";
 
 const NAV_ITEMS = [
-  { id: "LEARN",   icon: "🗺️", label: "LEARN",   path: "/dashboard" },
-  { id: "GARDEN",  icon: "🌻", label: "GARDEN",  path: "/garden"    },
-  { id: "PROFILE", icon: "👤", label: "PROFILE", path: "/profile"   },
+  { id: "LEARN", icon: "🗺️", label: "LEARN", path: "/dashboard" },
+  { id: "GARDEN", icon: "🌻", label: "GARDEN", path: "/garden" },
+  { id: "PROFILE", icon: "👤", label: "PROFILE", path: "/profile" },
 ];
 
 function Toast({ msg }: { msg: string }) {
@@ -43,8 +43,8 @@ function getSidebarSnapshot() {
 export function AppSidebar({ activeNav }: AppSidebarProps) {
   const router = useRouter();
   const initial = getSidebarSnapshot();
-  const [toast,      setToast]      = useState<string | null>(null);
-  const [logLabel,   setLogLabel]   = useState<string>(initial.logLabel);
+  const [toast, setToast] = useState<string | null>(null);
+  const [logLabel, setLogLabel] = useState<string>(initial.logLabel);
   const [quickCount, setQuickCount] = useState<{ count: number; target: number } | null>(initial.quickCount);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -98,7 +98,7 @@ export function AppSidebar({ activeNav }: AppSidebarProps) {
 
     const dayNum = Math.floor((Date.now() - new Date(d.startDate).getTime()) / 86400000) + 1;
     const target = getDailyTarget(d.quantity, dayNum);
-    const count  = getTodayCount(d, today);
+    const count = getTodayCount(d, today);
     const action = HABIT_ACTION[d.habit] ?? "Logged";
 
     if (count > target) {
@@ -201,8 +201,8 @@ export function AppSidebar({ activeNav }: AppSidebarProps) {
             fontWeight: "700", fontSize: "13px", cursor: "pointer",
             textTransform: "uppercase", letterSpacing: "0.5px",
           }}
-          onMouseDown={e => { e.currentTarget.style.transform = "translateY(4px)"; e.currentTarget.style.borderBottom = "0px solid #46a302"; }}
-          onMouseUp={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.borderBottom = "4px solid #46a302"; }}>
+            onMouseDown={e => { e.currentTarget.style.transform = "translateY(4px)"; e.currentTarget.style.borderBottom = "0px solid #46a302"; }}
+            onMouseUp={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.borderBottom = "4px solid #46a302"; }}>
             <img src="/Craving Bell.png" alt="" style={{ width: "24px", objectFit: "contain" }} />
             I Have a Craving
           </button>
@@ -214,8 +214,8 @@ export function AppSidebar({ activeNav }: AppSidebarProps) {
             fontWeight: "700", fontSize: "13px", cursor: "pointer",
             textTransform: "uppercase", letterSpacing: "0.5px",
           }}
-          onMouseDown={e => { e.currentTarget.style.transform = "translateY(4px)"; e.currentTarget.style.borderBottom = "0px solid #e5e5e5"; }}
-          onMouseUp={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.borderBottom = "4px solid #e5e5e5"; }}>
+            onMouseDown={e => { e.currentTarget.style.transform = "translateY(4px)"; e.currentTarget.style.borderBottom = "0px solid #e5e5e5"; }}
+            onMouseUp={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.borderBottom = "4px solid #e5e5e5"; }}>
             {logLabel} +1
           </button>
 

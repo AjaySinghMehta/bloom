@@ -125,78 +125,78 @@ export const supabaseJourneySync: RemoteJourneySync = {
         if (!user) continue;
 
         const { data: journey, error: journeyError } = await browserSupabase
-        .from("bloom_journeys")
-        .upsert(
-          {
-            user_id: user.id,
-            device_id: deviceId,
-            habit: currentData.habit,
-            quantity: currentData.quantity,
-            unit: currentData.unit,
-            trigger: currentData.trigger,
-            wake_time: currentData.wakeTime,
-            sleep_time: currentData.sleepTime,
-            drink_type: currentData.drinkType ?? null,
-            start_date: currentData.startDate,
-            current_streak: currentData.currentStreak ?? 0,
-            longest_streak: currentData.longestStreak ?? 0,
-            last_completed_date: currentData.lastCompletedDate ?? null,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "device_id" },
-        )
-        .select("id,user_id")
-        .single();
+          .from("bloom_journeys")
+          .upsert(
+            {
+              user_id: user.id,
+              device_id: deviceId,
+              habit: currentData.habit,
+              quantity: currentData.quantity,
+              unit: currentData.unit,
+              trigger: currentData.trigger,
+              wake_time: currentData.wakeTime,
+              sleep_time: currentData.sleepTime,
+              drink_type: currentData.drinkType ?? null,
+              start_date: currentData.startDate,
+              current_streak: currentData.currentStreak ?? 0,
+              longest_streak: currentData.longestStreak ?? 0,
+              last_completed_date: currentData.lastCompletedDate ?? null,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "device_id" },
+          )
+          .select("id,user_id")
+          .single();
 
-      if (journeyError) throw journeyError;
-      if (!journey) throw new Error("Journey upsert did not return a row.");
+        if (journeyError) throw journeyError;
+        if (!journey) throw new Error("Journey upsert did not return a row.");
 
-      for (const [dateKey, log] of Object.entries(currentData.logs ?? {})) {
-        const { error: dayStatusError } = await browserSupabase.from("bloom_day_status").upsert(
-          {
-            journey_id: journey.id,
-            log_date: dateKey,
-            checked_in: log.checkedIn ?? false,
-            checked_out: log.checkedOut ?? false,
-          },
-          { onConflict: "journey_id,log_date" },
-        );
-
-        if (dayStatusError) {
-          throw dayStatusError;
-        }
-
-        for (const craving of log.cravings ?? []) {
-          const cravingPayload = {
-            journey_id: journey.id,
-            log_date: dateKey,
-            hour: craving.hour,
-            minute: craving.minute,
-            logged_at: new Date(craving.timestamp).toISOString(),
-          };
-          const { error: cravingError } = await browserSupabase.from("bloom_cravings").upsert(
-            cravingPayload,
-            { onConflict: "journey_id,logged_at" },
+        for (const [dateKey, log] of Object.entries(currentData.logs ?? {})) {
+          const { error: dayStatusError } = await browserSupabase.from("bloom_day_status").upsert(
+            {
+              journey_id: journey.id,
+              log_date: dateKey,
+              checked_in: log.checkedIn ?? false,
+              checked_out: log.checkedOut ?? false,
+            },
+            { onConflict: "journey_id,log_date" },
           );
 
-          if (cravingError) throw cravingError;
-        }
+          if (dayStatusError) {
+            throw dayStatusError;
+          }
 
-        for (const usage of log.usages ?? []) {
-          const usagePayload = {
-            journey_id: journey.id,
-            log_date: dateKey,
-            amount: usage.amount,
-            logged_at: new Date(usage.timestamp).toISOString(),
-          };
-          const { error: usageError } = await browserSupabase.from("bloom_usage_logs").upsert(
-            usagePayload,
-            { onConflict: "journey_id,logged_at" },
-          );
+          for (const craving of log.cravings ?? []) {
+            const cravingPayload = {
+              journey_id: journey.id,
+              log_date: dateKey,
+              hour: craving.hour,
+              minute: craving.minute,
+              logged_at: new Date(craving.timestamp).toISOString(),
+            };
+            const { error: cravingError } = await browserSupabase.from("bloom_cravings").upsert(
+              cravingPayload,
+              { onConflict: "journey_id,logged_at" },
+            );
 
-          if (usageError) throw usageError;
+            if (cravingError) throw cravingError;
+          }
+
+          for (const usage of log.usages ?? []) {
+            const usagePayload = {
+              journey_id: journey.id,
+              log_date: dateKey,
+              amount: usage.amount,
+              logged_at: new Date(usage.timestamp).toISOString(),
+            };
+            const { error: usageError } = await browserSupabase.from("bloom_usage_logs").upsert(
+              usagePayload,
+              { onConflict: "journey_id,logged_at" },
+            );
+
+            if (usageError) throw usageError;
+          }
         }
-      }
       } catch (error) {
         // Silently capture sync loop errors to prevent console warnings
       }

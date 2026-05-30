@@ -11,17 +11,17 @@ type BloomData = BloomJourney;
 
 /* ── Winding path generator ── */
 const WEEK_THEMES = [
-  { title: "Week 1 — The Awakening", desc: "Observe and log. No pressure.",           color: "#58cc02", shadow: "#46a302", image: "/Digital Garden.png"  },
-  { title: "Week 2 — Deep Roots",    desc: "The first real reduction begins.",         color: "#1cb0f6", shadow: "#1899d6", image: "/Science Backed.png" },
-  { title: "Week 3 — The Bloom",     desc: "Halfway there. Your garden grows.",        color: "#ff9600", shadow: "#e08600", image: "/Digital Garden.png"  },
-  { title: "Week 4 — Freedom",       desc: "The final push. You've got this.",         color: "#a855f7", shadow: "#8b3fe0", image: "/Science Backed.png" },
+  { title: "Week 1 — The Awakening", desc: "Observe and log. No pressure.", color: "#58cc02", shadow: "#46a302", image: "/Digital Garden.png" },
+  { title: "Week 2 — Deep Roots", desc: "The first real reduction begins.", color: "#1cb0f6", shadow: "#1899d6", image: "/Science Backed.png" },
+  { title: "Week 3 — The Bloom", desc: "Halfway there. Your garden grows.", color: "#ff9600", shadow: "#e08600", image: "/Digital Garden.png" },
+  { title: "Week 4 — Freedom", desc: "The final push. You've got this.", color: "#a855f7", shadow: "#8b3fe0", image: "/Science Backed.png" },
 ];
-const ICONS = ["🌱","🍃","💧","☀️","🪴","🦋","🏠","🌿","🧠","⚡","💪","🔥","🧘","🎯","🌸","🍀","🌲","⛅","🏔️","🌈","🏅","🎖️","🌻","🏆","⭐","💫","✨","🌟"];
+const ICONS = ["🌱", "🍃", "💧", "☀️", "🪴", "🦋", "🏠", "🌿", "🧠", "⚡", "💪", "🔥", "🧘", "🎯", "🌸", "🍀", "🌲", "⛅", "🏔️", "🌈", "🏅", "🎖️", "🌻", "🏆", "⭐", "💫", "✨", "🌟"];
 const OFFSETS_EVEN = [80, 140, 190, 220, 190, 140, 80];
-const OFFSETS_ODD  = [-80, -140, -190, -220, -190, -140, -80];
+const OFFSETS_ODD = [-80, -140, -190, -220, -190, -140, -80];
 
 const MOBILE_OFFSETS_EVEN = [30, 70, 100, 120, 100, 70, 30];
-const MOBILE_OFFSETS_ODD  = [-30, -70, -100, -120, -100, -70, -30];
+const MOBILE_OFFSETS_ODD = [-30, -70, -100, -120, -100, -70, -30];
 
 const CHAPTERS = WEEK_THEMES.map((theme, w) => ({
   ...theme, id: w + 1,
@@ -36,8 +36,8 @@ const CHAPTERS = WEEK_THEMES.map((theme, w) => ({
 }));
 
 /* ── Helpers ── */
-const todayKey  = () => getLocalISODate();
-const dateKey   = (startDate: string, dayNum: number) => {
+const todayKey = () => getLocalISODate();
+const dateKey = (startDate: string, dayNum: number) => {
   const d = new Date(startDate);
   d.setDate(d.getDate() + dayNum - 1);
   return getLocalISODate(d);
@@ -73,11 +73,11 @@ function UsageTracker({ dayId, data, dayKey, isToday }: {
     return () => window.removeEventListener("bloom_update", refresh);
   }, [getCount]);
 
-  const isOver  = count > target;
+  const isOver = count > target;
   const isExact = count === target;
-  const pct     = target > 0 ? Math.min(100, (count / target) * 100) : 100;
+  const pct = target > 0 ? Math.min(100, (count / target) * 100) : 100;
   const barColor = isOver ? "#ff4b4b" : isExact ? "#ffc107" : "#58cc02";
-  const useDots  = target <= 20;
+  const useDots = target <= 20;
 
   const mutate = (delta: number) => {
     if (!isToday) return;
@@ -95,8 +95,8 @@ function UsageTracker({ dayId, data, dayKey, isToday }: {
   const msg = isOver
     ? `${count - target} over limit — log it honestly. The plan adjusts, not your streak.`
     : isExact
-    ? `Exactly ${target} today. That's your goal. Hold the line — not one more.`
-    : `${target - count} ${data.unit} left today. Stay on track — you've got this.`;
+      ? `Exactly ${target} today. That's your goal. Hold the line — not one more.`
+      : `${target - count} ${data.unit} left today. Stay on track — you've got this.`;
 
   return (
     <div className="usage-tracker-card" style={{
@@ -167,25 +167,25 @@ function DayView({ dayId, data, onBack, onComplete }: {
   dayId: number; data: BloomData;
   onBack: () => void; onComplete: () => void;
 }) {
-  const wake  = parseInt(data.wakeTime?.split(":")?.[0] ?? "7");
+  const wake = parseInt(data.wakeTime?.split(":")?.[0] ?? "7");
   const sleep = parseInt(data.sleepTime?.split(":")?.[0] ?? "23");
   let length = sleep - wake + 1;
   if (length <= 0) length += 24;
   const hours: number[] = Array.from({ length }, (_, i) => (wake + i) % 24);
 
-  const key     = dateKey(data.startDate, dayId);
-  const log     = data.logs[key] ?? { cravings: [], usages: [], checkedIn: false, checkedOut: false };
+  const key = dateKey(data.startDate, dayId);
+  const log = data.logs[key] ?? { cravings: [], usages: [], checkedIn: false, checkedOut: false };
   const isToday = key === todayKey();
-  const isPast  = key < todayKey();
+  const isPast = key < todayKey();
 
   const cravingHours = new Set((log.cravings || []).map(c => c.hour));
-  const usageHours   = new Set((log.usages || []).map(u => {
+  const usageHours = new Set((log.usages || []).map(u => {
     return u.timestamp ? new Date(u.timestamp).getHours() : -1;
   }));
 
-  const [checkedIn, setCheckedIn]   = useState(log.checkedIn ?? false);
+  const [checkedIn, setCheckedIn] = useState(log.checkedIn ?? false);
   const [checkedOut, setCheckedOut] = useState(log.checkedOut ?? false);
-  const [toast, setToast]           = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
@@ -265,8 +265,8 @@ function DayView({ dayId, data, onBack, onComplete }: {
         {checkedIn
           ? <div style={{ fontSize: "13px", fontWeight: "700", color: "#58cc02" }}>✓ Done</div>
           : <button onClick={doCheckIn} disabled={!isToday} style={{ padding: "10px 20px", borderRadius: "12px", backgroundColor: isToday ? "#58cc02" : "#afafaf", color: "white", fontWeight: "700", border: "none", boxShadow: isToday ? "0 4px 0 #46a302" : "none", cursor: isToday ? "pointer" : "default", fontSize: "13px" }}>
-              {isToday ? "CHECK IN" : "—"}
-            </button>
+            {isToday ? "CHECK IN" : "—"}
+          </button>
         }
       </div>
 
@@ -281,7 +281,7 @@ function DayView({ dayId, data, onBack, onComplete }: {
       <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
         {hours.map((h) => {
           const hasCraving = cravingHours.has(h);
-          const hasUsage   = usageHours.has(h);
+          const hasUsage = usageHours.has(h);
           return (
             <div className="hour-row" key={h} style={{
               display: "flex", alignItems: "center", gap: "12px",
@@ -295,7 +295,7 @@ function DayView({ dayId, data, onBack, onComplete }: {
               </div>
               <div style={{ flex: 1, display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
                 {hasCraving && <span style={{ fontSize: "11px", background: "#ffc107", color: "white", padding: "2px 8px", borderRadius: "6px", fontWeight: "700" }}>⚡ CRAVING</span>}
-                {hasUsage   && <span style={{ fontSize: "11px", background: "#58cc02", color: "white", padding: "2px 8px", borderRadius: "6px", fontWeight: "700" }}>📝 LOGGED</span>}
+                {hasUsage && <span style={{ fontSize: "11px", background: "#58cc02", color: "white", padding: "2px 8px", borderRadius: "6px", fontWeight: "700" }}>📝 LOGGED</span>}
               </div>
               {isToday && (
                 <button
@@ -320,22 +320,22 @@ function DayView({ dayId, data, onBack, onComplete }: {
       {/* Night check-out */}
       {checkedOut
         ? <div style={{ background: "linear-gradient(135deg, #58cc02, #1cb0f6)", borderRadius: "20px", padding: "32px", color: "white", textAlign: "center" }}>
-            <div style={{ fontSize: "40px", marginBottom: "12px" }}>🏆</div>
-            <h3 style={{ fontSize: "20px", color: "white", fontWeight: "900" }}>Day Complete!</h3>
-            <p style={{ opacity: 0.9, fontSize: "14px", marginTop: "8px" }}>Your streak has been updated. Well done.</p>
-          </div>
+          <div style={{ fontSize: "40px", marginBottom: "12px" }}>🏆</div>
+          <h3 style={{ fontSize: "20px", color: "white", fontWeight: "900" }}>Day Complete!</h3>
+          <p style={{ opacity: 0.9, fontSize: "14px", marginTop: "8px" }}>Your streak has been updated. Well done.</p>
+        </div>
         : <div style={{ background: "linear-gradient(135deg, #1f2937, #374151)", borderRadius: "20px", padding: "32px", color: "white", textAlign: "center" }}>
-            <div style={{ fontSize: "40px", marginBottom: "12px" }}>🌙</div>
-            <h3 style={{ fontSize: "20px", color: "white", fontWeight: "900" }}>End of Day Check-Out</h3>
-            <p style={{ opacity: 0.7, fontSize: "14px", marginTop: "8px", marginBottom: "24px" }}>Lock in today's progress. This updates your streak.</p>
-            <button
-              onClick={doCheckOut}
-              disabled={!isToday}
-              style={{ padding: "14px 32px", borderRadius: "14px", border: "none", backgroundColor: isToday ? "#58cc02" : "#555", color: "white", fontWeight: "800", cursor: isToday ? "pointer" : "default", fontSize: "14px", boxShadow: isToday ? "0 4px 0 #46a302" : "none" }}
-            >
-              {isToday ? "✓ COMPLETE DAY" : "Available at end of your day"}
-            </button>
-          </div>
+          <div style={{ fontSize: "40px", marginBottom: "12px" }}>🌙</div>
+          <h3 style={{ fontSize: "20px", color: "white", fontWeight: "900" }}>End of Day Check-Out</h3>
+          <p style={{ opacity: 0.7, fontSize: "14px", marginTop: "8px", marginBottom: "24px" }}>Lock in today's progress. This updates your streak.</p>
+          <button
+            onClick={doCheckOut}
+            disabled={!isToday}
+            style={{ padding: "14px 32px", borderRadius: "14px", border: "none", backgroundColor: isToday ? "#58cc02" : "#555", color: "white", fontWeight: "800", cursor: isToday ? "pointer" : "default", fontSize: "14px", boxShadow: isToday ? "0 4px 0 #46a302" : "none" }}
+          >
+            {isToday ? "✓ COMPLETE DAY" : "Available at end of your day"}
+          </button>
+        </div>
       }
 
       {toast && (
@@ -350,8 +350,8 @@ function DayView({ dayId, data, onBack, onComplete }: {
 /* ── Main Dashboard ── */
 export default function Dashboard() {
   const router = useRouter();
-  const [data,        setData]        = useState<BloomData | null>(null);
-  const [isHydrated,  setIsHydrated]  = useState(false);
+  const [data, setData] = useState<BloomData | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [animatingDay, setAnimatingDay] = useState<number | null>(null);
   const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
@@ -383,12 +383,12 @@ export default function Dashboard() {
   }
 
   const daysSinceStart = daysSince(data.startDate);
-  const todayLogKey    = todayKey();
-  const todayLog       = data.logs?.[todayLogKey];
-  const streak         = data.currentStreak ?? 0;
-  const todayCravings  = todayLog?.cravings?.length ?? 0;
-  const todayTotal     = (todayLog?.usages ?? []).reduce((sum, usage) => sum + (usage.amount ?? 0), 0);
-  const todayTarget    = getDailyTarget(data.quantity, daysSinceStart + 1);
+  const todayLogKey = todayKey();
+  const todayLog = data.logs?.[todayLogKey];
+  const streak = data.currentStreak ?? 0;
+  const todayCravings = todayLog?.cravings?.length ?? 0;
+  const todayTotal = (todayLog?.usages ?? []).reduce((sum, usage) => sum + (usage.amount ?? 0), 0);
+  const todayTarget = getDailyTarget(data.quantity, daysSinceStart + 1);
 
   const activeDayNum = Math.min(28, daysSinceStart + 1);
   const activeChapterId = Math.ceil(activeDayNum / 7);
@@ -414,14 +414,14 @@ export default function Dashboard() {
 
       {/* Analysis Overlay */}
       {isAnalysisOpen && (
-        <div 
+        <div
           className="analysis-overlay"
           onClick={() => setIsAnalysisOpen(false)}
         />
       )}
 
       {/* Analysis Trigger Button */}
-      <button 
+      <button
         className="analysis-trigger-btn"
         onClick={() => setIsAnalysisOpen(prev => !prev)}
       >
@@ -432,78 +432,78 @@ export default function Dashboard() {
       <section className="dashboard-main" style={{ flex: 1, marginLeft: "248px", display: "flex", flexDirection: "column", alignItems: "center", paddingBottom: "120px", backgroundColor: "#fdfdfd", minHeight: "100vh", minWidth: 0, overflowX: "hidden" }}>
         {selectedDay
           ? <DayView
-              key={selectedDay}
-              dayId={selectedDay}
-              data={data}
-              onBack={() => setSelectedDay(null)}
-              onComplete={() => { setSelectedDay(null); refresh(); }}
-            />
+            key={selectedDay}
+            dayId={selectedDay}
+            data={data}
+            onBack={() => setSelectedDay(null)}
+            onComplete={() => { setSelectedDay(null); refresh(); }}
+          />
           : CHAPTERS.map((chapter, cIdx) => {
             const isActiveChapter = chapter.id === activeChapterId;
             return (
-            <div className="chapter-shell" key={chapter.id} style={{ width: "100%", maxWidth: "680px", position: "relative", marginBottom: "80px" }}>
-              {/* Chapter header */}
-              <div className="chapter-header" style={{ backgroundColor: chapter.color, borderRadius: "20px", padding: "24px 28px", color: "white", marginTop: "48px", marginBottom: "80px", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: `0 6px 0 ${chapter.shadow}` }}>
-                <div>
-                  <div style={{ fontSize: "11px", fontWeight: "700", opacity: 0.75, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "6px" }}>7 Days</div>
-                  <h2 style={{ fontSize: "22px", fontWeight: "900", color: "white" }}>{chapter.title}</h2>
-                  <p style={{ opacity: 0.85, fontSize: "14px", marginTop: "4px" }}>{chapter.desc}</p>
-                </div>
-                <img src={chapter.image} alt="" style={{ width: "72px", height: "72px", borderRadius: "14px", objectFit: "cover", border: "3px solid rgba(255,255,255,0.3)" }} />
-              </div>
-
-              {/* Snake Path */}
-              <div className="chapter-path" style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: "40px" }}>
-                {/* Mascot in belly */}
-                {isActiveChapter && (
-                  <div className={`chapter-mascot ${cIdx % 2 === 0 ? "mascot-even" : "mascot-odd"}`} style={{
-                    position: "absolute",
-                    top: "210px", width: "240px", textAlign: "center", zIndex: 1, pointerEvents: "none"
-                  }}>
-                    <img src="/mascot-isolated.png" alt="" style={{ width: "100%", animation: "mascotFloat 4s ease-in-out infinite" }} />
-                    <span style={{ display: "inline-block", background: "white", padding: "6px 14px", borderRadius: "20px", fontSize: "11px", fontWeight: "800", color: chapter.color, border: `2px solid ${chapter.color}`, marginTop: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-                      YOU ARE HERE
-                    </span>
+              <div className="chapter-shell" key={chapter.id} style={{ width: "100%", maxWidth: "680px", position: "relative", marginBottom: "80px" }}>
+                {/* Chapter header */}
+                <div className="chapter-header" style={{ backgroundColor: chapter.color, borderRadius: "20px", padding: "24px 28px", color: "white", marginTop: "48px", marginBottom: "80px", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: `0 6px 0 ${chapter.shadow}` }}>
+                  <div>
+                    <div style={{ fontSize: "11px", fontWeight: "700", opacity: 0.75, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "6px" }}>7 Days</div>
+                    <h2 style={{ fontSize: "22px", fontWeight: "900", color: "white" }}>{chapter.title}</h2>
+                    <p style={{ opacity: 0.85, fontSize: "14px", marginTop: "4px" }}>{chapter.desc}</p>
                   </div>
-                )}
+                  <img src={chapter.image} alt="" style={{ width: "72px", height: "72px", borderRadius: "14px", objectFit: "cover", border: "3px solid rgba(255,255,255,0.3)" }} />
+                </div>
 
-                {/* Level dots */}
-                {chapter.levels.map((level) => {
-                  const status = getDayStatus(level.dayNum);
-                  const isToday = status === "today" || (daysSinceStart >= 28 && level.dayNum === 28);
-                  return (
-                    <div key={level.id} className={`level-wrapper ${animatingDay === level.id ? "is-animating" : ""}`} style={{
-                      position: "relative",
-                      "--mobile-offset": level.mobileOffset,
-                      "--cavity-dir": level.isEven ? "-1" : "1",
-                    } as React.CSSProperties}>
-                      <button
-                        onClick={() => openDay(level.id)}
-                        title={`Day ${level.dayNum}${status === "locked" ? " — Future preview" : ""}`}
-                        style={{
-                          width: "88px", height: "80px", borderRadius: "50%",
-                          backgroundColor: status === "done" ? "#d4f0a0" : status === "today" ? chapter.color : "#eeeeee",
-                          border: status === "today" ? `4px solid white` : "none",
-                          outline: status === "today" ? `3px solid ${chapter.color}` : "none",
-                          boxShadow: status === "done" ? "0 8px 0 #b0d870" : status === "today" ? `0 8px 0 ${chapter.shadow}` : "0 8px 0 #d5d5d5",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          fontSize: status === "done" ? "28px" : "32px",
-                          cursor: "pointer",
-                          transform: `translateX(${level.offset}) ${animatingDay === level.id ? "translateY(4px) scale(0.96)" : ""}`,
-                          position: "relative", zIndex: 5,
-                          transition: "transform 0.18s ease, filter 0.15s ease",
-                        }}
-                        className="level-btn"
-                      >
-                        {status === "done" ? "✓" : level.icon}
-                      </button>
+                {/* Snake Path */}
+                <div className="chapter-path" style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: "40px" }}>
+                  {/* Mascot in belly */}
+                  {isActiveChapter && (
+                    <div className={`chapter-mascot ${cIdx % 2 === 0 ? "mascot-even" : "mascot-odd"}`} style={{
+                      position: "absolute",
+                      top: "210px", width: "240px", textAlign: "center", zIndex: 1, pointerEvents: "none"
+                    }}>
+                      <img src="/mascot-isolated.png" alt="" style={{ width: "100%", animation: "mascotFloat 4s ease-in-out infinite" }} />
+                      <span style={{ display: "inline-block", background: "white", padding: "6px 14px", borderRadius: "20px", fontSize: "11px", fontWeight: "800", color: chapter.color, border: `2px solid ${chapter.color}`, marginTop: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+                        YOU ARE HERE
+                      </span>
                     </div>
-                  );
-                })}
+                  )}
+
+                  {/* Level dots */}
+                  {chapter.levels.map((level) => {
+                    const status = getDayStatus(level.dayNum);
+                    const isToday = status === "today" || (daysSinceStart >= 28 && level.dayNum === 28);
+                    return (
+                      <div key={level.id} className={`level-wrapper ${animatingDay === level.id ? "is-animating" : ""}`} style={{
+                        position: "relative",
+                        "--mobile-offset": level.mobileOffset,
+                        "--cavity-dir": level.isEven ? "-1" : "1",
+                      } as React.CSSProperties}>
+                        <button
+                          onClick={() => openDay(level.id)}
+                          title={`Day ${level.dayNum}${status === "locked" ? " — Future preview" : ""}`}
+                          style={{
+                            width: "88px", height: "80px", borderRadius: "50%",
+                            backgroundColor: status === "done" ? "#d4f0a0" : status === "today" ? chapter.color : "#eeeeee",
+                            border: status === "today" ? `4px solid white` : "none",
+                            outline: status === "today" ? `3px solid ${chapter.color}` : "none",
+                            boxShadow: status === "done" ? "0 8px 0 #b0d870" : status === "today" ? `0 8px 0 ${chapter.shadow}` : "0 8px 0 #d5d5d5",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            fontSize: status === "done" ? "28px" : "32px",
+                            cursor: "pointer",
+                            transform: `translateX(${level.offset}) ${animatingDay === level.id ? "translateY(4px) scale(0.96)" : ""}`,
+                            position: "relative", zIndex: 5,
+                            transition: "transform 0.18s ease, filter 0.15s ease",
+                          }}
+                          className="level-btn"
+                        >
+                          {status === "done" ? "✓" : level.icon}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          );
-        })
+            );
+          })
         }
       </section>
 
@@ -540,12 +540,12 @@ export default function Dashboard() {
           <div style={{ fontWeight: "700", fontSize: "12px", color: "#afafaf", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "10px" }}>📋 Daily Usage</div>
           {todayTotal > 0
             ? <div>
-                <div style={{ fontSize: "28px", fontWeight: "900", color: todayTotal > todayTarget ? "#ff4b4b" : "#58cc02" }}>{todayTotal}</div>
-                <div style={{ fontSize: "12px", color: "#afafaf" }}>{data.unit} today · Target: {todayTarget}</div>
-                <div style={{ marginTop: "10px", height: "8px", background: "#eeeeee", borderRadius: "8px" }}>
-                  <div style={{ width: `${Math.min(100, (todayTotal / todayTarget) * 100)}%`, height: "100%", background: todayTotal > todayTarget ? "#ff4b4b" : "#58cc02", borderRadius: "8px", transition: "width 0.4s ease" }} />
-                </div>
+              <div style={{ fontSize: "28px", fontWeight: "900", color: todayTotal > todayTarget ? "#ff4b4b" : "#58cc02" }}>{todayTotal}</div>
+              <div style={{ fontSize: "12px", color: "#afafaf" }}>{data.unit} today · Target: {todayTarget}</div>
+              <div style={{ marginTop: "10px", height: "8px", background: "#eeeeee", borderRadius: "8px" }}>
+                <div style={{ width: `${Math.min(100, (todayTotal / todayTarget) * 100)}%`, height: "100%", background: todayTotal > todayTarget ? "#ff4b4b" : "#58cc02", borderRadius: "8px", transition: "width 0.4s ease" }} />
               </div>
+            </div>
             : <p style={{ fontSize: "13px", color: "#afafaf" }}>No usage logged yet. Target: {todayTarget} {data.unit}</p>
           }
         </div>
@@ -554,11 +554,11 @@ export default function Dashboard() {
         <div style={{ padding: "20px", borderRadius: "16px", backgroundColor: "#fff8e1", border: "2px solid #ffe082" }}>
           <div style={{ fontWeight: "700", fontSize: "12px", color: "#c99700", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>💡 Today's Tip</div>
           <p style={{ fontSize: "13px", color: "#775a00", lineHeight: 1.7 }}>
-            {data.trigger === "Stress"   && "When stress hits, pause for 5 minutes. Drink ice water — it reduces craving intensity by up to 40%."}
-            {data.trigger === "Social"   && "Before social events, set a firm limit in your head. Rehearsing the 'no' makes it 3x easier to say it."}
-            {data.trigger === "Boredom"  && "Keep your hands busy. Squeeze a stress ball, chew gum, or step outside for 2 minutes."}
-            {data.trigger === "Routine"  && "Break the routine. Change just one small thing about the time or place when the urge normally hits."}
-            {!data.trigger              && "The urge to use peaks at 3 minutes and fades. Just wait 5 minutes — it almost always passes."}
+            {data.trigger === "Stress" && "When stress hits, pause for 5 minutes. Drink ice water — it reduces craving intensity by up to 40%."}
+            {data.trigger === "Social" && "Before social events, set a firm limit in your head. Rehearsing the 'no' makes it 3x easier to say it."}
+            {data.trigger === "Boredom" && "Keep your hands busy. Squeeze a stress ball, chew gum, or step outside for 2 minutes."}
+            {data.trigger === "Routine" && "Break the routine. Change just one small thing about the time or place when the urge normally hits."}
+            {!data.trigger && "The urge to use peaks at 3 minutes and fades. Just wait 5 minutes — it almost always passes."}
           </p>
         </div>
 

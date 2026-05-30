@@ -55,23 +55,23 @@ const HABIT_DEFAULTS: Record<string, { unit: string; quantity: number }> = {
 };
 
 const TRIGGERS = [
-  { id: "Stress",  label: "Stress or Anxiety",  desc: "Pressure builds and the urge hits.",           emoji: "😤" },
-  { id: "Social",  label: "Social Situations",  desc: "Friends or crowds make it hard to say no.",    emoji: "👥" },
-  { id: "Boredom", label: "Boredom",             desc: "Empty time turns into the habit.",             emoji: "😴" },
-  { id: "Routine", label: "Daily Routine",       desc: "Tied to morning coffee, commute, or meals.",   emoji: "🔄" },
+  { id: "Stress", label: "Stress or Anxiety", desc: "Pressure builds and the urge hits.", emoji: "😤" },
+  { id: "Social", label: "Social Situations", desc: "Friends or crowds make it hard to say no.", emoji: "👥" },
+  { id: "Boredom", label: "Boredom", desc: "Empty time turns into the habit.", emoji: "😴" },
+  { id: "Routine", label: "Daily Routine", desc: "Tied to morning coffee, commute, or meals.", emoji: "🔄" },
 ];
 
 export default function SetupPage() {
-  const router   = useRouter();
-  const [step,      setStep]      = useState<Step>("HABIT");
-  const [habit,     setHabit]     = useState("");
-  const [quantity,  setQuantity]  = useState(10);
-  const [unit,      setUnit]      = useState("");
-  const [trigger,   setTrigger]   = useState("");
-  const [wakeTime,  setWakeTime]  = useState("07:00");
+  const router = useRouter();
+  const [step, setStep] = useState<Step>("HABIT");
+  const [habit, setHabit] = useState("");
+  const [quantity, setQuantity] = useState(10);
+  const [unit, setUnit] = useState("");
+  const [trigger, setTrigger] = useState("");
+  const [wakeTime, setWakeTime] = useState("07:00");
   const [sleepTime, setSleepTime] = useState("23:00");
   const [drinkType, setDrinkType] = useState("");
-  const [selected,  setSelected]  = useState<string | null>(null); // for click flash
+  const [selected, setSelected] = useState<string | null>(null); // for click flash
 
   const selectedHabit = HABITS.find(h => h.id === habit);
 
@@ -244,7 +244,7 @@ export default function SetupPage() {
             <div style={{ background: "white", borderRadius: "24px", padding: "32px", border: "2px solid #eeeeee", marginBottom: "20px", display: "flex", flexDirection: "column", gap: "24px" }}>
               {[
                 { label: "🌅 Wake-up time", key: "wake", value: wakeTime, setter: setWakeTime },
-                { label: "🌙 Sleep time",   key: "sleep", value: sleepTime, setter: setSleepTime },
+                { label: "🌙 Sleep time", key: "sleep", value: sleepTime, setter: setSleepTime },
               ].map(({ label, key, value, setter }) => (
                 <div key={key}>
                   <label style={{ display: "block", fontWeight: "700", marginBottom: "10px", fontSize: "15px" }}>{label}</label>
