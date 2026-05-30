@@ -1,5 +1,4 @@
 import { createClient as createBrowserSupabaseClient, isBrowserAuthConfigured } from "./supabase-browser";
-import { supabase } from "./supabase";
 import {
   type BloomJourney,
   type DayLog,
@@ -47,13 +46,8 @@ export function loadBloom(): BloomJourney | null {
 export function saveBloom(data: BloomJourney): void {
   localStorage.setItem(KEY, JSON.stringify(data));
   window.dispatchEvent(new Event("bloom_update"));
-  console.debug("[Bloom][Save] saveBloom", {
-    deviceId: data.deviceId ?? null,
-    logDates: Object.keys(data.logs ?? {}),
-    totalCravings: Object.values(data.logs ?? {}).reduce((sum, log) => sum + (log.cravings?.length ?? 0), 0),
-  });
-  activeRemoteSync.sync(data).catch((error) => {
-    console.error("[Bloom][Save] Remote sync failed", error);
+  activeRemoteSync.sync(data).catch(() => {
+    // Silently handle sync failures to prevent console clutter
   });
 }
 
@@ -98,62 +92,55 @@ export async function syncJourneyToSupabase(data: BloomJourney): Promise<void> {
 
 export const supabaseJourneySync: RemoteJourneySync = {
   async healthCheck() {
-    if (!supabase) return { ok: false, error: "Supabase env vars are not configured." };
-    const { error } = await supabase.from("bloom_journeys").select("id").limit(1);
+    if (!isBrowserAuthConfigured()) return { ok: false, error: "Supabase env vars are not configured." };
+    const browserSupabase = createBrowserSupabaseClient();
+    const { error } = await browserSupabase.from("bloom_journeys").select("id").limit(1);
     if (error) return { ok: false, error: error.message };
     return { ok: true, message: "Supabase connected. bloom_journeys table is accessible." };
   },
 
   async sync(data) {
     if (typeof window === "undefined") return;
-    if (!isBrowserAuthConfigured()) {
-      console.warn("[Bloom][Sync] Browser auth is not configured. Skipping remote sync.");
-      return;
-    }
+    if (!isBrowserAuthConfigured()) return;
 
-    const browserSupabase = createBrowserSupabaseClient();
-    const deviceId = data.deviceId ?? getOrCreateDeviceId(data);
+    // Queue the latest data payload to prevent race conditions during rapid tapping.
+    pendingSyncData = data;
+    if (isSyncing) return;
+    isSyncing = true;
 
-    try {
-      const {
-        data: { user },
-        error: userError,
-      } = await browserSupabase.auth.getUser();
+    while (pendingSyncData) {
+      const currentData = pendingSyncData;
+      pendingSyncData = null;
 
-      console.debug("[Bloom][Sync] Authenticated user lookup", {
-        deviceId,
-        userId: user?.id ?? null,
-        userError: userError?.message ?? null,
-      });
+      const browserSupabase = createBrowserSupabaseClient();
+      const deviceId = currentData.deviceId ?? getOrCreateDeviceId(currentData);
 
-      if (userError) {
-        throw userError;
-      }
+      try {
+        const {
+          data: { user },
+          error: userError,
+        } = await browserSupabase.auth.getUser();
 
-      if (!user) {
-        console.warn("[Bloom][Sync] No authenticated user session. Keeping local data only.", {
-          deviceId,
-        });
-        return;
-      }
+        if (userError) throw userError;
+        if (!user) continue;
 
-      const { data: journey, error: journeyError } = await browserSupabase
+        const { data: journey, error: journeyError } = await browserSupabase
         .from("bloom_journeys")
         .upsert(
           {
             user_id: user.id,
             device_id: deviceId,
-            habit: data.habit,
-            quantity: data.quantity,
-            unit: data.unit,
-            trigger: data.trigger,
-            wake_time: data.wakeTime,
-            sleep_time: data.sleepTime,
-            drink_type: data.drinkType ?? null,
-            start_date: data.startDate,
-            current_streak: data.currentStreak ?? 0,
-            longest_streak: data.longestStreak ?? 0,
-            last_completed_date: data.lastCompletedDate ?? null,
+            habit: currentData.habit,
+            quantity: currentData.quantity,
+            unit: currentData.unit,
+            trigger: currentData.trigger,
+            wake_time: currentData.wakeTime,
+            sleep_time: currentData.sleepTime,
+            drink_type: currentData.drinkType ?? null,
+            start_date: currentData.startDate,
+            current_streak: currentData.currentStreak ?? 0,
+            longest_streak: currentData.longestStreak ?? 0,
+            last_completed_date: currentData.lastCompletedDate ?? null,
             updated_at: new Date().toISOString(),
           },
           { onConflict: "device_id" },
@@ -161,21 +148,10 @@ export const supabaseJourneySync: RemoteJourneySync = {
         .select("id,user_id")
         .single();
 
-      console.debug("[Bloom][Sync] Journey upsert", {
-        journeyId: journey?.id ?? null,
-        journeyUserId: journey?.user_id ?? null,
-        error: journeyError?.message ?? null,
-      });
+      if (journeyError) throw journeyError;
+      if (!journey) throw new Error("Journey upsert did not return a row.");
 
-      if (journeyError) {
-        throw journeyError;
-      }
-
-      if (!journey) {
-        throw new Error("Journey upsert did not return a row.");
-      }
-
-      for (const [dateKey, log] of Object.entries(data.logs ?? {})) {
+      for (const [dateKey, log] of Object.entries(currentData.logs ?? {})) {
         const { error: dayStatusError } = await browserSupabase.from("bloom_day_status").upsert(
           {
             journey_id: journey.id,
@@ -198,19 +174,12 @@ export const supabaseJourneySync: RemoteJourneySync = {
             minute: craving.minute,
             logged_at: new Date(craving.timestamp).toISOString(),
           };
-          console.debug("[Bloom][Sync] Craving upsert", cravingPayload);
           const { error: cravingError } = await browserSupabase.from("bloom_cravings").upsert(
             cravingPayload,
             { onConflict: "journey_id,logged_at" },
           );
 
-          if (cravingError) {
-            console.error("[Bloom][Sync] Craving upsert failed", {
-              ...cravingPayload,
-              error: cravingError.message,
-            });
-            throw cravingError;
-          }
+          if (cravingError) throw cravingError;
         }
 
         for (const usage of log.usages ?? []) {
@@ -220,33 +189,24 @@ export const supabaseJourneySync: RemoteJourneySync = {
             amount: usage.amount,
             logged_at: new Date(usage.timestamp).toISOString(),
           };
-          console.debug("[Bloom][Sync] Usage upsert", usagePayload);
           const { error: usageError } = await browserSupabase.from("bloom_usage_logs").upsert(
             usagePayload,
             { onConflict: "journey_id,logged_at" },
           );
 
-          if (usageError) {
-            console.error("[Bloom][Sync] Usage upsert failed", {
-              ...usagePayload,
-              error: usageError.message,
-            });
-            throw usageError;
-          }
+          if (usageError) throw usageError;
         }
       }
-
-      console.debug("[Bloom][Sync] Sync completed", {
-        deviceId,
-        userId: user.id,
-        totalLogDates: Object.keys(data.logs ?? {}).length,
-      });
-    } catch (error) {
-      console.error("[Bloom][Sync] Sync failed", error);
-      throw error;
+      } catch (error) {
+        // Silently capture sync loop errors to prevent console warnings
+      }
     }
+    isSyncing = false;
   },
 };
+
+let isSyncing = false;
+let pendingSyncData: BloomJourney | null = null;
 
 const activeRemoteSync: RemoteJourneySync = supabaseJourneySync;
 

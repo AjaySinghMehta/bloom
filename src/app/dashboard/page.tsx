@@ -20,6 +20,9 @@ const ICONS = ["🌱","🍃","💧","☀️","🪴","🦋","🏠","🌿","🧠",
 const OFFSETS_EVEN = [80, 140, 190, 220, 190, 140, 80];
 const OFFSETS_ODD  = [-80, -140, -190, -220, -190, -140, -80];
 
+const MOBILE_OFFSETS_EVEN = [30, 70, 100, 120, 100, 70, 30];
+const MOBILE_OFFSETS_ODD  = [-30, -70, -100, -120, -100, -70, -30];
+
 const CHAPTERS = WEEK_THEMES.map((theme, w) => ({
   ...theme, id: w + 1,
   levels: Array.from({ length: 7 }, (_, d) => ({
@@ -27,6 +30,8 @@ const CHAPTERS = WEEK_THEMES.map((theme, w) => ({
     dayNum: w * 7 + d + 1,
     icon: ICONS[(w * 7 + d) % ICONS.length],
     offset: `${w % 2 === 0 ? OFFSETS_EVEN[d] : OFFSETS_ODD[d]}px`,
+    mobileOffset: `${w % 2 === 0 ? MOBILE_OFFSETS_EVEN[d] : MOBILE_OFFSETS_ODD[d]}px`,
+    isEven: w % 2 === 0,
   })),
 }));
 
@@ -345,9 +350,17 @@ function DayView({ dayId, data, onBack, onComplete }: {
 /* ── Main Dashboard ── */
 export default function Dashboard() {
   const router = useRouter();
-  const [data,        setData]        = useState<BloomData | null>(() => loadData());
+  const [data,        setData]        = useState<BloomData | null>(null);
+  const [isHydrated,  setIsHydrated]  = useState(false);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [animatingDay, setAnimatingDay] = useState<number | null>(null);
+  const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+    const d = loadData();
+    if (d) setData(d);
+  }, []);
 
   const refresh = useCallback(() => {
     const d = loadData();
@@ -356,12 +369,18 @@ export default function Dashboard() {
   }, [router]);
 
   useEffect(() => {
-    if (!data) router.push("/setup");
+    if (isHydrated && !data) router.push("/setup");
     window.addEventListener("bloom_update", refresh);
     return () => window.removeEventListener("bloom_update", refresh);
-  }, [data, refresh, router]);
+  }, [isHydrated, data, refresh, router]);
 
-  if (!data) return null;
+  if (!isHydrated || !data) {
+    return (
+      <main className="dashboard-layout" style={{ minHeight: "100vh", backgroundColor: "white", display: "flex" }}>
+        <section className="dashboard-main" style={{ flex: 1, marginLeft: "248px", backgroundColor: "#fdfdfd", minHeight: "100vh", minWidth: 0, overflowX: "hidden" }} />
+      </main>
+    );
+  }
 
   const daysSinceStart = daysSince(data.startDate);
   const todayLogKey    = todayKey();
@@ -370,6 +389,9 @@ export default function Dashboard() {
   const todayCravings  = todayLog?.cravings?.length ?? 0;
   const todayTotal     = (todayLog?.usages ?? []).reduce((sum, usage) => sum + (usage.amount ?? 0), 0);
   const todayTarget    = getDailyTarget(data.quantity, daysSinceStart + 1);
+
+  const activeDayNum = Math.min(28, daysSinceStart + 1);
+  const activeChapterId = Math.ceil(activeDayNum / 7);
 
 
   const getDayStatus = (dayNum: number): "done" | "today" | "locked" => {
@@ -390,8 +412,24 @@ export default function Dashboard() {
     <main className="dashboard-layout" style={{ minHeight: "100vh", backgroundColor: "white", display: "flex" }}>
       <AppSidebar activeNav="LEARN" />
 
+      {/* Analysis Overlay */}
+      {isAnalysisOpen && (
+        <div 
+          className="analysis-overlay"
+          onClick={() => setIsAnalysisOpen(false)}
+        />
+      )}
+
+      {/* Analysis Trigger Button */}
+      <button 
+        className="analysis-trigger-btn"
+        onClick={() => setIsAnalysisOpen(prev => !prev)}
+      >
+        📊 Analysis
+      </button>
+
       {/* ── Main Roadmap ── */}
-      <section className="dashboard-main" style={{ flex: 1, marginLeft: "248px", marginRight: "320px", display: "flex", flexDirection: "column", alignItems: "center", paddingBottom: "120px", backgroundColor: "#fdfdfd", minHeight: "100vh" }}>
+      <section className="dashboard-main" style={{ flex: 1, marginLeft: "248px", display: "flex", flexDirection: "column", alignItems: "center", paddingBottom: "120px", backgroundColor: "#fdfdfd", minHeight: "100vh", minWidth: 0, overflowX: "hidden" }}>
         {selectedDay
           ? <DayView
               key={selectedDay}
@@ -400,7 +438,9 @@ export default function Dashboard() {
               onBack={() => setSelectedDay(null)}
               onComplete={() => { setSelectedDay(null); refresh(); }}
             />
-          : CHAPTERS.map((chapter, cIdx) => (
+          : CHAPTERS.map((chapter, cIdx) => {
+            const isActiveChapter = chapter.id === activeChapterId;
+            return (
             <div className="chapter-shell" key={chapter.id} style={{ width: "100%", maxWidth: "680px", position: "relative", marginBottom: "80px" }}>
               {/* Chapter header */}
               <div className="chapter-header" style={{ backgroundColor: chapter.color, borderRadius: "20px", padding: "24px 28px", color: "white", marginTop: "48px", marginBottom: "80px", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: `0 6px 0 ${chapter.shadow}` }}>
@@ -415,54 +455,64 @@ export default function Dashboard() {
               {/* Snake Path */}
               <div className="chapter-path" style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: "40px" }}>
                 {/* Mascot in belly */}
-                <div className="chapter-mascot" style={{
-                  position: "absolute",
-                  left:  cIdx % 2 === 0 ? "80px" : "auto",
-                  right: cIdx % 2 !== 0 ? "80px" : "auto",
-                  top: "210px", width: "240px", textAlign: "center", zIndex: 1, pointerEvents: "none"
-                }}>
-                  <img src="/mascot-isolated.png" alt="" style={{ width: "100%", animation: "mascotFloat 4s ease-in-out infinite" }} />
-                  <span style={{ display: "inline-block", background: "white", padding: "6px 14px", borderRadius: "20px", fontSize: "11px", fontWeight: "800", color: chapter.color, border: `2px solid ${chapter.color}`, marginTop: "8px" }}>
-                    {["LET'S GO!", "YOU GOT THIS!", "HALFWAY!", "FREEDOM!"][cIdx]}
-                  </span>
-                </div>
+                {isActiveChapter && (
+                  <div className={`chapter-mascot ${cIdx % 2 === 0 ? "mascot-even" : "mascot-odd"}`} style={{
+                    position: "absolute",
+                    top: "210px", width: "240px", textAlign: "center", zIndex: 1, pointerEvents: "none"
+                  }}>
+                    <img src="/mascot-isolated.png" alt="" style={{ width: "100%", animation: "mascotFloat 4s ease-in-out infinite" }} />
+                    <span style={{ display: "inline-block", background: "white", padding: "6px 14px", borderRadius: "20px", fontSize: "11px", fontWeight: "800", color: chapter.color, border: `2px solid ${chapter.color}`, marginTop: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+                      YOU ARE HERE
+                    </span>
+                  </div>
+                )}
 
                 {/* Level dots */}
                 {chapter.levels.map((level) => {
                   const status = getDayStatus(level.dayNum);
+                  const isToday = status === "today" || (daysSinceStart >= 28 && level.dayNum === 28);
                   return (
-                    <button
-                      key={level.id}
-                      onClick={() => openDay(level.id)}
-                      title={`Day ${level.dayNum}${status === "locked" ? " — Future preview" : ""}`}
-                      style={{
-                        width: "88px", height: "80px", borderRadius: "50%",
-                        backgroundColor: status === "done" ? "#d4f0a0" : status === "today" ? chapter.color : "#eeeeee",
-                        border: status === "today" ? `4px solid white` : "none",
-                        outline: status === "today" ? `3px solid ${chapter.color}` : "none",
-                        boxShadow: status === "done" ? "0 8px 0 #b0d870" : status === "today" ? `0 8px 0 ${chapter.shadow}` : "0 8px 0 #d5d5d5",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: status === "done" ? "28px" : "32px",
-                        cursor: "pointer",
-                        transform: `translateX(${level.offset}) ${animatingDay === level.id ? "translateY(4px) scale(0.96)" : ""}`,
-                        position: "relative", zIndex: 5,
-                        transition: "transform 0.18s ease, filter 0.15s ease",
-                      }}
-                      className="level-btn"
-                    >
-                      {status === "done" ? "✓" : level.icon}
-                    </button>
+                    <div key={level.id} className={`level-wrapper ${animatingDay === level.id ? "is-animating" : ""}`} style={{
+                      position: "relative",
+                      "--mobile-offset": level.mobileOffset,
+                      "--cavity-dir": level.isEven ? "-1" : "1",
+                    } as React.CSSProperties}>
+                      <button
+                        onClick={() => openDay(level.id)}
+                        title={`Day ${level.dayNum}${status === "locked" ? " — Future preview" : ""}`}
+                        style={{
+                          width: "88px", height: "80px", borderRadius: "50%",
+                          backgroundColor: status === "done" ? "#d4f0a0" : status === "today" ? chapter.color : "#eeeeee",
+                          border: status === "today" ? `4px solid white` : "none",
+                          outline: status === "today" ? `3px solid ${chapter.color}` : "none",
+                          boxShadow: status === "done" ? "0 8px 0 #b0d870" : status === "today" ? `0 8px 0 ${chapter.shadow}` : "0 8px 0 #d5d5d5",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: status === "done" ? "28px" : "32px",
+                          cursor: "pointer",
+                          transform: `translateX(${level.offset}) ${animatingDay === level.id ? "translateY(4px) scale(0.96)" : ""}`,
+                          position: "relative", zIndex: 5,
+                          transition: "transform 0.18s ease, filter 0.15s ease",
+                        }}
+                        className="level-btn"
+                      >
+                        {status === "done" ? "✓" : level.icon}
+                      </button>
+                    </div>
                   );
                 })}
               </div>
             </div>
-          ))
+          );
+        })
         }
       </section>
 
       {/* ── Right Stats Sidebar ── */}
-      <aside className="dashboard-stats" style={{ width: "320px", padding: "32px 20px", position: "fixed", right: 0, height: "100vh", backgroundColor: "white", borderLeft: "2px solid #eeeeee", display: "flex", flexDirection: "column", gap: "16px", overflowY: "auto" }}>
-        <h3 style={{ fontSize: "18px", fontWeight: "800", color: "#1f1f1f" }}>Daily Stats</h3>
+      <aside className={`dashboard-stats ${isAnalysisOpen ? "analysis-open" : ""}`} style={{ width: "320px", padding: "32px 20px", position: "sticky", top: 0, height: "100vh", backgroundColor: "white", borderLeft: "2px solid #eeeeee", display: "flex", flexDirection: "column", gap: "16px", overflowY: "auto", flexShrink: 0 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h3 style={{ fontSize: "18px", fontWeight: "800", color: "#1f1f1f" }}>Daily Stats</h3>
+          <button className="analysis-close-btn" onClick={() => setIsAnalysisOpen(false)}>✕</button>
+        </div>
 
         {/* Streak */}
         <div style={{ padding: "20px", borderRadius: "16px", border: "2px solid #eeeeee" }}>
@@ -518,6 +568,16 @@ export default function Dashboard() {
           <div style={{ fontWeight: "800", color: "#4b4b4b" }}>Day {daysSinceStart + 1} of 28</div>
           <div style={{ fontSize: "11px", color: "#58cc02", marginTop: "4px" }}>{new Date(data.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</div>
         </div>
+
+        {/* Future AI Insights Placeholder */}
+        <div style={{ padding: "20px", borderRadius: "16px", background: "linear-gradient(135deg, #f0f9ff, #e0f2fe)", border: "2px solid #bae6fd" }}>
+          <div style={{ fontWeight: "700", fontSize: "12px", color: "#0284c7", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
+            ✨ AI Insights <span style={{ background: "#38bdf8", color: "white", padding: "2px 6px", borderRadius: "4px", fontSize: "9px", fontWeight: "800" }}>SOON</span>
+          </div>
+          <p style={{ fontSize: "12px", color: "#0369a1", lineHeight: 1.6 }}>
+            Personalized behavioral analysis and pattern detection will appear here as your garden grows.
+          </p>
+        </div>
       </aside>
 
       <style jsx>{`
@@ -525,44 +585,162 @@ export default function Dashboard() {
         @keyframes mascotFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
+        .level-wrapper {
+          position: relative;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 5;
+        }
+
+        .mascot-even {
+          left: 80px;
+        }
+        .mascot-odd {
+          right: 80px;
+        }
+
+        .analysis-overlay,
+        .analysis-trigger-btn,
+        .analysis-close-btn {
+          display: none;
+        }
+
         @media (max-width: 1024px) {
-          .dashboard-layout {
-            display: block;
+          .level-wrapper {
+            transform: translateX(var(--mobile-offset)) var(--anim-transform, ) !important;
+            transition: transform 0.18s ease;
+          }
+          
+          .level-wrapper.is-animating {
+            --anim-transform: translateY(4px) scale(0.96);
+          }
+
+          .level-btn {
+            transform: none !important; /* override the inline desktop transform */
+          }
+
+          .chapter-mascot {
+            width: 160px !important;
+          }
+          
+          .mascot-even {
+            left: 50%;
+            transform: translateX(calc(-50% - 130px));
+          }
+          
+          .mascot-odd {
+            right: auto;
+            left: 50%;
+            transform: translateX(calc(-50% + 130px));
           }
 
           .dashboard-main {
             margin-left: 220px !important;
-            margin-right: 0 !important;
-            min-height: auto !important;
-            padding: 32px 20px 72px !important;
+            padding: 32px 16px 72px !important;
           }
 
           .dashboard-stats {
-            position: static !important;
-            width: auto !important;
-            height: auto !important;
+            position: fixed !important;
+            top: 0 !important;
+            right: 0 !important;
+            width: 320px !important;
+            max-width: 85vw !important;
+            height: 100vh !important;
+            z-index: 200 !important;
+            transform: translateX(110%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: -4px 0 24px rgba(0,0,0,0.1);
+            padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 12px)) !important;
             border-left: none !important;
-            border-top: 2px solid #eeeeee;
-            padding: 24px 20px 40px !important;
+          }
+          
+          .dashboard-stats.analysis-open {
+            transform: translateX(0);
+          }
+
+          .analysis-overlay {
+            display: block;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 42, 45, 0.24);
+            z-index: 180;
+            backdrop-filter: blur(2px);
+          }
+
+          .analysis-trigger-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: fixed;
+            top: 24px;
+            right: 0;
+            background: white;
+            border: 2px solid #eeeeee;
+            border-right: none;
+            padding: 12px 16px;
+            border-top-left-radius: 14px;
+            border-bottom-left-radius: 14px;
+            font-weight: 800;
+            font-size: 13px;
+            color: #4b4b4b;
+            cursor: pointer;
+            z-index: 90;
+            box-shadow: -4px 4px 16px rgba(0,0,0,0.06);
+            transition: transform 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          .analysis-trigger-btn:active {
+            transform: scale(0.96);
+          }
+
+          .analysis-close-btn {
+            display: flex;
+            background: #f7f7f7;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: 800;
+            color: #777;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+          }
+          .analysis-close-btn:hover {
+            background: #eeeeee;
           }
 
           .chapter-shell {
             max-width: 100% !important;
           }
-
-          .chapter-mascot {
-            display: none !important;
-          }
-
-          .level-btn {
-            transform: none !important;
-          }
         }
 
         @media (max-width: 767px) {
+          .chapter-mascot {
+            width: 120px !important;
+          }
+          .mascot-even {
+            transform: translateX(calc(-50% - 100px));
+          }
+          .mascot-odd {
+            transform: translateX(calc(-50% + 100px));
+          }
+          
+          .dashboard-layout {
+            flex-direction: column;
+          }
+
           .dashboard-main {
             margin-left: 0 !important;
             padding: 72px 14px 40px !important;
+          }
+
+          .analysis-trigger-btn {
+            top: 14px;
           }
 
           .chapter-header,
@@ -572,6 +750,10 @@ export default function Dashboard() {
           .hour-row {
             flex-direction: column;
             align-items: flex-start !important;
+          }
+
+          .usage-tracker-header > div {
+            text-align: left !important;
           }
 
           .chapter-header {
@@ -594,6 +776,8 @@ export default function Dashboard() {
           .day-view {
             max-width: 100% !important;
             padding: 20px 0 !important;
+            overflow-x: hidden;
+            width: 100% !important;
           }
 
           .usage-tracker-card,
@@ -623,10 +807,6 @@ export default function Dashboard() {
 
           .usage-tracker-actions {
             flex-direction: column;
-          }
-
-          .usage-tracker-header div:last-child {
-            text-align: left !important;
           }
 
           .day-view-header h1 {

@@ -4,17 +4,12 @@ export default function Home() {
   return (
     <>
       {/* ── Sticky Top Nav ── */}
-      <header style={{
-        position: "sticky", top: 0, zIndex: 1000,
-        height: "68px", backgroundColor: "#0f2a2d",
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
-        display: "flex", alignItems: "center", padding: "0 40px",
-      }}>
-        <div style={{ width: "100%", maxWidth: "1100px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontSize: "28px", fontWeight: "900", color: "#58cc02", letterSpacing: "-1.5px" }}>bloom</div>
+      <header className="top-nav">
+        <div className="nav-container">
+          <div className="logo">bloom</div>
           <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-            <Link href="/dashboard" style={{ color: "rgba(255,255,255,0.6)", fontWeight: "600", fontSize: "14px", padding: "8px 16px" }}>Sign In</Link>
-            <Link href="/setup" style={{ backgroundColor: "#58cc02", color: "white", fontWeight: "700", fontSize: "14px", padding: "10px 22px", borderRadius: "10px", boxShadow: "0 4px 0 #46a302", textDecoration: "none", letterSpacing: "0.5px" }}>GET STARTED</Link>
+            <Link href="/dashboard" className="nav-link">Sign In</Link>
+            <Link href="/setup" className="nav-btn-primary">GET STARTED</Link>
           </div>
         </div>
       </header>
@@ -37,11 +32,11 @@ export default function Home() {
               <p style={{ fontSize: "18px", color: "#4b4b4b", lineHeight: 1.7, marginBottom: "36px" }}>
                 Bloom doesn't ask you to quit cold turkey. Instead, we build a personalized weekly tapering plan — guided by psychology, not willpower.
               </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: "14px", maxWidth: "320px" }}>
-                <Link href="/setup" className="btn-primary" style={{ width: "100%", borderRadius: "14px", fontSize: "16px", padding: "16px 32px" }}>
+              <div className="hero-buttons">
+                <Link href="/setup" className="btn-primary hero-btn">
                   🌱 Start My Journey
                 </Link>
-                <Link href="/dashboard" className="btn-white" style={{ width: "100%", borderRadius: "14px", fontSize: "15px", padding: "14px 32px" }}>
+                <Link href="/dashboard" className="btn-white hero-btn">
                   I already have an account
                 </Link>
               </div>
@@ -61,7 +56,7 @@ export default function Home() {
               <p>
                 Abruptly stopping creates physiological rebound and near-certain relapse. Our tapering algorithm calculates a safe, personalized reduction curve — stepping you down week by week without the shock.
               </p>
-              <div style={{ display: "flex", gap: "24px", marginTop: "32px" }}>
+              <div className="method-stats">
                 {[["10%", "first week reduction"], ["4", "weeks to freedom"], ["93%", "less withdrawal"]].map(([num, label]) => (
                   <div key={label} style={{ textAlign: "center" }}>
                     <div style={{ fontSize: "28px", fontWeight: "900", color: "#58cc02" }}>{num}</div>
@@ -115,7 +110,7 @@ export default function Home() {
               <div style={{ color: "#58cc02", fontWeight: "700", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "12px" }}>WHY BLOOM</div>
               <h2 style={{ fontSize: "40px" }}>Built different, by design.</h2>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "24px" }}>
+            <div className="why-bloom-grid">
               {[
                 { emoji: "🧠", title: "Psychological", body: "We focus on rewiring the brain's response to your specific triggers — not just counting cigarettes." },
                 { emoji: "📉", title: "Data Driven",   body: "Your tapering curve is calculated from real daily consumption data. Not a generic plan." },
@@ -135,7 +130,7 @@ export default function Home() {
         <section className="feature-section">
           <div className="container" style={{ textAlign: "center" }}>
             <div style={{ fontSize: "13px", fontWeight: "700", color: "#afafaf", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "48px" }}>WHAT PEOPLE SAY</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "20px" }}>
+            <div className="reviews-grid">
               {[
                 { quote: "I smoked for 12 years. Bloom got me to zero in 6 weeks. No other app came close.", name: "Raj M.", days: "42 days free" },
                 { quote: "I didn't believe a gradual approach would work. I was wrong. The garden makes it real.", name: "Priya K.", days: "28 days free" },
@@ -158,10 +153,10 @@ export default function Home() {
             <div style={{ fontSize: "60px", marginBottom: "24px" }}>🌸</div>
             <h2 style={{ fontSize: "40px", color: "white", marginBottom: "16px" }}>Ready to plant your first seed?</h2>
             <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "18px", marginBottom: "40px" }}>Your garden is waiting. It takes 5 minutes to set up.</p>
-            <Link href="/setup" className="btn-primary" style={{ fontSize: "17px", padding: "18px 48px", borderRadius: "16px", display: "inline-flex" }}>
+            <Link href="/setup" className="btn-primary footer-btn">
               🌱 Start My Journey — Free
             </Link>
-            <div style={{ marginTop: "60px", display: "flex", justifyContent: "center", gap: "40px", color: "rgba(255,255,255,0.4)", fontSize: "13px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "1px" }}>
+            <div className="footer-links-wrap">
               {["About", "Science", "Privacy", "Terms", "Contact"].map(l => <span key={l} style={{ cursor: "pointer" }}>{l}</span>)}
             </div>
             <div style={{ marginTop: "40px", color: "rgba(255,255,255,0.25)", fontSize: "12px" }}>

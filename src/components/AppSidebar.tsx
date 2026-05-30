@@ -17,13 +17,7 @@ const NAV_ITEMS = [
 
 function Toast({ msg }: { msg: string }) {
   return (
-    <div style={{
-      position: "fixed", bottom: "28px", left: "50%", transform: "translateX(-50%)",
-      background: "#1f1f1f", color: "white", padding: "14px 28px",
-      borderRadius: "14px", fontWeight: "700", fontSize: "14px",
-      zIndex: 9999, animation: "sbFadeUp 0.3s ease-out",
-      boxShadow: "0 8px 30px rgba(0,0,0,0.25)", whiteSpace: "nowrap", maxWidth: "90vw",
-    }}>
+    <div className="bloom-toast">
       {msg}
     </div>
   );
@@ -86,11 +80,6 @@ export function AppSidebar({ activeNav }: AppSidebarProps) {
     const today = todayKey();
     const day = getOrInitDay(d, today);
     const now = new Date();
-    console.debug("[Bloom][Craving] Sidebar click", {
-      today,
-      existingCravings: day.cravings.length,
-      deviceId: d.deviceId ?? null,
-    });
     day.cravings.push({ timestamp: Date.now(), hour: now.getHours(), minute: now.getMinutes() });
     saveBloom(d);
     setIsMobileMenuOpen(false);
@@ -252,6 +241,16 @@ export function AppSidebar({ activeNav }: AppSidebarProps) {
         </div>
       </aside>
 
+      {/* Mobile Bottom Action Bar */}
+      <div className="bloom-mobile-action-bar">
+        <button className="bloom-mobile-action-btn craving" onClick={logCraving}>
+          <img src="/Craving Bell.png" alt="" style={{ width: "20px", objectFit: "contain" }} />
+          I HAVE A CRAVING
+        </button>
+        <button className="bloom-mobile-action-btn log" onClick={quickLog}>
+          {logLabel} +1
+        </button>
+      </div>
 
       {toast && <Toast msg={toast} />}
 
@@ -259,6 +258,91 @@ export function AppSidebar({ activeNav }: AppSidebarProps) {
         @keyframes sbFadeUp {
           from { opacity: 0; transform: translateX(-50%) translateY(8px); }
           to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        .bloom-toast {
+          position: fixed;
+          bottom: 28px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: #1f1f1f;
+          color: white;
+          padding: 14px 28px;
+          border-radius: 14px;
+          font-weight: 700;
+          font-size: 14px;
+          z-index: 9999;
+          animation: sbFadeUp 0.3s ease-out;
+          box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+          white-space: nowrap;
+          max-width: 90vw;
+        }
+
+        .bloom-mobile-action-bar {
+          display: none;
+        }
+
+        @media (max-width: 767px) {
+          .bloom-mobile-action-bar {
+            display: flex;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid #eeeeee;
+            padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 12px)) 16px;
+            gap: 12px;
+            z-index: 150;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+          }
+
+          .bloom-mobile-action-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 10px;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 13px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+            transition: transform 0.1s;
+          }
+
+          .bloom-mobile-action-btn.craving {
+            background-color: #58cc02;
+            color: white;
+            border-bottom: 4px solid #46a302;
+          }
+          .bloom-mobile-action-btn.craving:active {
+            transform: translateY(4px);
+            border-bottom-width: 0px;
+            margin-bottom: 4px;
+          }
+
+          .bloom-mobile-action-btn.log {
+            background-color: white;
+            color: #4b4b4b;
+            border: 2px solid #e5e5e5;
+            border-bottom: 4px solid #e5e5e5;
+          }
+          .bloom-mobile-action-btn.log:active {
+            transform: translateY(4px);
+            border-bottom-width: 0px;
+            margin-bottom: 4px;
+          }
+          
+          .bloom-toast {
+            bottom: 120px;
+          }
         }
       `}</style>
     </>

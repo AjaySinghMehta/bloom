@@ -140,6 +140,30 @@ input, select, textarea {
   transform: translateY(5px);
 }
 
+.hero-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 320px;
+}
+
+.hero-btn {
+  width: 100%;
+  border-radius: 14px;
+  font-size: 16px;
+  padding: 16px 32px;
+  white-space: normal;
+  text-align: center;
+}
+
+.footer-btn {
+  font-size: 17px;
+  padding: 18px 48px;
+  border-radius: 16px;
+  white-space: normal;
+  text-align: center;
+}
+
 /* ==========================================
    LAYOUT
    ========================================== */
@@ -178,6 +202,38 @@ input, select, textarea {
   font-weight: 900;
   color: var(--green-500);
   letter-spacing: -1.5px;
+}
+
+.nav-link {
+  color: rgba(255,255,255,0.6);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 16px;
+  transition: color 0.2s ease;
+}
+.nav-link:hover {
+  color: white;
+}
+
+.nav-btn-primary {
+  background-color: var(--green-500);
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 22px;
+  border-radius: 10px;
+  box-shadow: 0 4px 0 var(--green-600);
+  text-decoration: none;
+  letter-spacing: 0.5px;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.2s ease;
+  white-space: nowrap;
+}
+.nav-btn-primary:hover {
+  filter: brightness(1.05);
+}
+.nav-btn-primary:active {
+  box-shadow: none;
+  transform: translateY(4px);
 }
 
 /* ==========================================
@@ -325,6 +381,35 @@ input, select, textarea {
   line-height: 1.7;
 }
 
+.method-stats {
+  display: flex;
+  gap: 24px;
+  margin-top: 32px;
+}
+
+/* ==========================================
+   GRIDS (Landing)
+   ========================================== */
+.why-bloom-grid,
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.footer-links-wrap {
+  margin-top: 60px;
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  color: rgba(255,255,255,0.4);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  flex-wrap: wrap;
+}
+
 /* ==========================================
    FOOTER (Landing)
    ========================================== */
@@ -399,15 +484,24 @@ footer {
   }
 
   .mascot-floating {
-    width: min(42vw, 230px);
-    left: max(12px, calc(50% - 250px));
-    bottom: 18px;
+    width: min(42vw, 250px);
+    left: max(12px, calc(50% - 240px));
+    bottom: 30px;
   }
 
   .pot-static {
-    width: min(30vw, 165px);
+    width: min(30vw, 180px);
     left: min(58%, 300px);
-    bottom: 12px;
+    bottom: 25px;
+  }
+
+  .why-bloom-grid,
+  .reviews-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .feature-grid {
+    gap: 40px;
   }
 }
 
@@ -426,25 +520,80 @@ footer {
     margin-top: 18px;
   }
 
+  .hero-buttons {
+    margin: 0 auto;
+  }
+
   .hero-content h1 {
     font-size: 40px;
     line-height: 1.18;
+    text-align: center;
+  }
+  
+  .hero-content p {
+    text-align: center;
+  }
+  
+  /* Center the "SCIENCE-BACKED" badge on mobile */
+  .hero-content > div:first-child {
+    display: block !important;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .hero-image-container {
-    height: 235px;
+    height: 260px;
   }
 
   .mascot-floating {
-    width: 190px;
-    left: 6px;
-    bottom: 18px;
+    width: 220px;
+    left: 0;
+    bottom: 30px;
   }
 
   .pot-static {
-    width: 140px;
-    left: calc(50% + 20px);
-    bottom: 14px;
+    width: 160px;
+    left: calc(50% + 10px);
+    bottom: 25px;
+  }
+
+  .nav-link {
+    padding: 8px 8px;
+    font-size: 13px;
+  }
+  .nav-btn-primary {
+    padding: 10px 14px;
+    font-size: 12px;
+  }
+
+  .feature-section {
+    padding: 60px 0;
+  }
+
+  .feature-grid, .feature-grid.reverse {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .feature-text h2 {
+    font-size: 30px;
+  }
+
+  .method-stats {
+    justify-content: center;
+  }
+
+  .why-bloom-grid,
+  .reviews-grid {
+    grid-template-columns: 1fr;
+  }
+
+  footer h2 {
+    font-size: 32px !important;
+  }
+  .footer-links-wrap {
+    gap: 20px;
   }
 }
 
@@ -454,17 +603,24 @@ footer {
   }
 
   .hero-image-container {
-    height: 215px;
+    height: 250px;
   }
 
   .mascot-floating {
-    width: 165px;
-    left: 0;
+    width: 200px;
+    left: -10px;
+    bottom: 30px;
   }
 
   .pot-static {
-    width: 120px;
-    left: calc(50% + 8px);
+    width: 145px;
+    left: calc(50%);
+    bottom: 25px;
+  }
+  
+  .footer-btn {
+    padding: 16px 24px;
+    font-size: 15px;
   }
 }
 
