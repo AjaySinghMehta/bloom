@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Routes that require a logged-in user
-const PROTECTED = ["/dashboard", "/garden", "/profile", "/setup"];
+const PROTECTED = ["/dashboard", "/garden", "/profile"];
 // Routes only for guests (logged-in users get redirected away)
 const AUTH_ONLY = ["/auth/login"];
 
@@ -32,15 +32,20 @@ export default async function proxy(request: NextRequest) {
         }
     );
 
+    const path = request.nextUrl.pathname;
+    const isProtectedRoute = PROTECTED.some(p => path.startsWith(p));
+
     const authResult = await supabase.auth.getUser().catch(() => null);
     if (!authResult || authResult.error) {
+        if (isProtectedRoute) {
+            return NextResponse.redirect(new URL("/auth/login", request.url));
+        }
         return supabaseResponse;
     }
     const user = authResult.data.user;
-    const path = request.nextUrl.pathname;
 
     // Redirect unauthenticated users away from protected routes
-    if (!user && PROTECTED.some(p => path.startsWith(p))) {
+    if (!user && isProtectedRoute) {
         return NextResponse.redirect(new URL("/auth/login", request.url));
     }
 

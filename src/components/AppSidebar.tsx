@@ -8,6 +8,7 @@ import {
   getDaysSince, clearBloom
 } from "@/lib/bloom-db";
 import { getAuthClient } from "@/lib/auth-client";
+import { createClient as createBrowserSupabaseClient, isBrowserAuthConfigured } from "@/lib/supabase-browser";
 
 const NAV_ITEMS = [
   { id: "LEARN", icon: "🗺️", label: "LEARN", path: "/dashboard" },
@@ -47,6 +48,7 @@ export function AppSidebar({ activeNav }: AppSidebarProps) {
   const [logLabel, setLogLabel] = useState<string>(initial.logLabel);
   const [quickCount, setQuickCount] = useState<{ count: number; target: number } | null>(initial.quickCount);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const refresh = () => {
@@ -56,6 +58,33 @@ export function AppSidebar({ activeNav }: AppSidebarProps) {
     };
     window.addEventListener("bloom_update", refresh);
     return () => window.removeEventListener("bloom_update", refresh);
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadAuthState = async () => {
+      if (!isBrowserAuthConfigured()) {
+        if (isMounted) setIsAuthenticated(false);
+        return;
+      }
+
+      try {
+        const supabase = createBrowserSupabaseClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (isMounted) setIsAuthenticated(Boolean(user));
+      } catch {
+        if (isMounted) setIsAuthenticated(false);
+      }
+    };
+
+    loadAuthState();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -220,24 +249,45 @@ export function AppSidebar({ activeNav }: AppSidebarProps) {
           </button>
 
           {/* Sign Out */}
-          <button
-            className="bloom-sidebar-signout"
-            onClick={async () => {
-              await getAuthClient().signOut();
-              clearBloom();
-              router.push("/auth/login");
-            }}
-            style={{
-              padding: "10px 16px", borderRadius: "12px",
-              backgroundColor: "transparent", color: "#afafaf",
-              border: "2px solid transparent",
-              fontWeight: "600", fontSize: "12px", cursor: "pointer",
-              textTransform: "uppercase", letterSpacing: "0.5px",
-              textAlign: "center",
-            }}
-          >
-            Sign Out
-          </button>
+          {isAuthenticated ? (
+            <button
+              className="bloom-sidebar-signout"
+              onClick={async () => {
+                await getAuthClient().signOut();
+                clearBloom();
+                setIsAuthenticated(false);
+                router.push("/auth/login");
+              }}
+              style={{
+                padding: "10px 16px", borderRadius: "12px",
+                backgroundColor: "transparent", color: "#afafaf",
+                border: "2px solid transparent",
+                fontWeight: "600", fontSize: "12px", cursor: "pointer",
+                textTransform: "uppercase", letterSpacing: "0.5px",
+                textAlign: "center",
+              }}
+            >
+              Sign Out
+            </button>
+          ) : (
+            <button
+              className="bloom-sidebar-signout"
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                router.push("/auth/login");
+              }}
+              style={{
+                padding: "10px 16px", borderRadius: "12px",
+                backgroundColor: "transparent", color: "#afafaf",
+                border: "2px solid transparent",
+                fontWeight: "600", fontSize: "12px", cursor: "pointer",
+                textTransform: "uppercase", letterSpacing: "0.5px",
+                textAlign: "center",
+              }}
+            >
+              Sign In
+            </button>
+          )}
         </div>
       </aside>
 
